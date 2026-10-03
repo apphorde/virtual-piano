@@ -61,10 +61,32 @@ const keyMap = {
 
 // Initialize the piano when DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
-  // Attach click handlers to white keys
+  // Attach pointer handlers to white keys
   whiteKeys.forEach((key) => {
     const note = key.dataset.note;
-    key.addEventListener("click", () => handleNoteOn(note));
+    // Pointer down: play note, add active class, set pointer capture
+    key.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      handleNoteOn(note);
+      key.classList.add("active");
+      key.setPointerCapture(e.pointerId);
+    });
+    // Pointer up on key: stop note, remove active class
+    key.addEventListener("pointerup", (e) => {
+      e.preventDefault();
+      key.releasePointerCapture(e.pointerId);
+      handleNoteOff(note);
+      key.classList.remove("active");
+    });
+    // Pointer cancel: stop note, remove active class
+    key.addEventListener("pointercancel", (e) => {
+      e.preventDefault();
+      key.releasePointerCapture(e.pointerId);
+      handleNoteOff(note);
+      key.classList.remove("active");
+    });
+    // Mouse over: visual feedback
     key.addEventListener("mouseover", () => {
       if (activeNotes.has(note)) key.classList.add("active");
     });
@@ -73,10 +95,32 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Attach click handlers to black keys
+  // Attach pointer handlers to black keys
   blackKeys.forEach((key) => {
     const note = key.dataset.note;
-    key.addEventListener("click", () => handleNoteOn(note));
+    // Pointer down: play note, add active class, set pointer capture
+    key.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      handleNoteOn(note);
+      key.classList.add("active");
+      key.setPointerCapture(e.pointerId);
+    });
+    // Pointer up on key: stop note, remove active class
+    key.addEventListener("pointerup", (e) => {
+      e.preventDefault();
+      key.releasePointerCapture(e.pointerId);
+      handleNoteOff(note);
+      key.classList.remove("active");
+    });
+    // Pointer cancel: stop note, remove active class
+    key.addEventListener("pointercancel", (e) => {
+      e.preventDefault();
+      key.releasePointerCapture(e.pointerId);
+      handleNoteOff(note);
+      key.classList.remove("active");
+    });
+    // Mouse over: visual feedback
     key.addEventListener("mouseover", () => {
       if (activeNotes.has(note)) key.classList.add("active");
     });
@@ -85,8 +129,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Keyboard support
+  // Keyboard support - ignore auto-repeat, release on blur/visibility
   document.addEventListener("keydown", (e) => {
+    // Ignore key auto-repeat
+    if (e.repeat) return;
     const noteName = keyMap[e.code];
     if (noteName) {
       e.preventDefault();
@@ -98,6 +144,24 @@ document.addEventListener("DOMContentLoaded", () => {
     const noteName = keyMap[e.code];
     if (noteName) {
       handleNoteOff(noteName);
+    }
+  });
+
+  // Release all notes when window loses focus
+  window.addEventListener("blur", () => {
+    for (const note of activeNotes) {
+      handleNoteOff(note);
+    }
+    activeNotes.clear();
+  });
+
+  // Release all notes when tab becomes inactive
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+      for (const note of activeNotes) {
+        handleNoteOff(note);
+      }
+      activeNotes.clear();
     }
   });
 });

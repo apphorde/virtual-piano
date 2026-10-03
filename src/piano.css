@@ -22,7 +22,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 1rem;
-  padding: 2rem 1rem;
+  padding: 2rem 0;
   color: var(--ink);
   background: var(--bg);
   font-family:
@@ -31,7 +31,9 @@ body {
 }
 
 .piano-container {
-  width: min(100%, 980px);
+  width: 100%;
+  max-width: none;
+  margin: 0;
 }
 
 .piano-heading {
@@ -199,7 +201,7 @@ body {
 
 @media (max-width: 520px) {
   body {
-    padding: 1rem 0.5rem;
+    padding: 1rem 0;
   }
 
   .keyboard-keys {
