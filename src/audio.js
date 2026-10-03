@@ -4,8 +4,11 @@
 // Global audio context and state
 let audioContext = null;
 const oscillatorPool = new Map(); // noteName -> OscillatorNode
-const gainNode = null;
-const activeNotes = new Set();
+let gainNode = null;
+export const activeNotes = new Set();
+export function isAudioRunning() {
+  return !!(audioContext && audioContext.state === "running");
+}
 
 // Note name to frequency mapping (same as main.js noteApi)
 const NOTE_FREQUENCIES = {
@@ -38,10 +41,13 @@ const NOTE_FREQUENCIES = {
 /**
  * Initialize the AudioContext on user gesture
  * Must be called after a user interaction (click/touch)
+ * Creates the AudioContext exactly once and resumes it.
  */
 export function initAudio() {
-  if (audioContext && audioContext.state !== "suspended") {
-    return; // Already running
+  if (audioContext) {
+    return audioContext.state === "suspended"
+      ? audioContext.resume()
+      : Promise.resolve();
   }
 
   audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -49,24 +55,28 @@ export function initAudio() {
   gainNode.gain.value = 0.3;
   gainNode.connect(audioContext.destination);
 
-  // We don't resume here - we wait for user gesture if needed
-  // The context may start suspended until user interaction
+  // Resume the context if it's suspended (required by Web Audio spec
+  // after creation; user gesture already triggered this call)
+  return audioContext.state === "suspended"
+    ? audioContext.resume()
+    : Promise.resolve();
 }
 
 /**
  * Play a note by name (e.g., "C3", "A4#")
  * Polyphonic - multiple notes can play simultaneously
  * @param {string} noteName - Note name like "C3", "A4#"
+ * Creates a fresh oscillator per note for clean polyphony.
  */
 export function playNote(noteName) {
   if (!audioContext) {
-    console.warn(
-      "AudioContext not initialized. Call initAudio() first or wait for user gesture.",
-    );
-    // Try to resume if suspended
-    if (audioContext && audioContext.state === "suspended") {
-      audioContext.resume().then(() => playNote(noteName));
-    }
+    initAudio().then(() => playNote(noteName));
+    return;
+  }
+
+  // If context is suspended, resume it first, then play the note
+  if (audioContext.state === "suspended") {
+    audioContext.resume().then(() => playNote(noteName));
     return;
   }
 
@@ -76,28 +86,22 @@ export function playNote(noteName) {
     return;
   }
 
-  // Create or reuse oscillator from pool
-  let oscillator;
-  if (oscillatorPool.has(noteName)) {
-    oscillator = oscillatorPool.get(noteName);
-    if (oscillator.state === "running") {
-      // Stop and restart for proper polyphony with envelope
-      oscillator.stop();
-    }
-  } else {
-    oscillator = audioContext.createOscillator();
-    oscillatorPool.set(noteName, oscillator);
+  // Create a fresh oscillator per note (OscillatorNodes cannot be reliably
+  // restarted after stop; polyphony is achieved by multiple concurrent notes)
+  const previous = oscillatorPool.get(noteName);
+  if (previous?.oscillator?.state === "running") {
+    previous.oscillator.stop();
   }
+
+  const oscillator = audioContext.createOscillator();
+  oscillator.type = "sine";
+  oscillator.frequency.value = frequency;
 
   // Create gain node for this note's envelope
   const noteGain = audioContext.createGain();
 
-  // Set oscillator parameters
-  oscillator.type = "sine";
-  oscillator.frequency.value = frequency;
+  // Connect oscillator to note gain, then to master gain
   oscillator.connect(noteGain);
-
-  // Connect note gain to master gain, then to destination
   noteGain.gain.value = 0;
   noteGain.connect(gainNode);
 
@@ -108,54 +112,8 @@ export function playNote(noteName) {
   // Start the oscillator
   oscillator.start(audioContext.currentTime);
 
-  // Schedule note-off after a short duration (with release)
-  // For a piano-like sound, we use a short decay
-  const noteDuration = 0.5; // seconds
-  const releaseTime = 0.1; // seconds for fade out
-
-  const startTime = audioContext.currentTime;
-
-  // When note-off comes, fade out then stop
-  const stopEnvelope = () => {
-    const now = audioContext.currentTime;
-    noteGain.gain.linearRampToValueAtTime(
-      noteGain.gain.value,
-      now + releaseTime,
-    );
-    noteGain.gain.exponentialRampToValueAtTime(
-      0.0001,
-      now + releaseTime + 0.05,
-    );
-
-    // Stop oscillator after release
-    const stopTime = now + releaseTime + 0.05;
-    oscillator.stop(stopTime);
-  };
-
-  // Store the stop info for when stopNote is called
-  const noteData = {
-    noteName,
-    oscillator,
-    noteGain,
-    startTime,
-    releaseTime,
-  };
-
-  // If this note isn't already active, schedule auto-off
-  if (!activeNotes.has(noteName)) {
-    activeNotes.add(noteName);
-    // Schedule automatic note-off after duration
-    setTimeout(() => {
-      stopEnvelope();
-      activeNotes.delete(noteName);
-      // Clean up oscillator from pool after some time
-      setTimeout(() => {
-        if (oscillatorPool.has(noteName)) {
-          oscillatorPool.delete(noteName);
-        }
-      }, 2000);
-    }, noteDuration * 1000);
-  }
+  // Track this oscillator in the pool for later cleanup
+  oscillatorPool.set(noteName, { oscillator, noteGain });
 
   // Mark this note as currently playing
   activeNotes.add(noteName);
@@ -169,27 +127,20 @@ export function playNote(noteName) {
 export function stopNote(noteName) {
   if (!audioContext || !gainNode) return;
 
-  // Find the note's oscillator/gain from the pool
-  const noteData = oscillatorPool.get(noteName);
-  if (noteData && noteData.noteGain) {
-    const now = audioContext.currentTime;
-    // Fade out the gain
-    noteData.noteGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.05);
-  }
-
   // Remove from active set
   activeNotes.delete(noteName);
 
-  // Clean up oscillator from pool after a grace period
-  setTimeout(() => {
-    if (oscillatorPool.has(noteName)) {
-      const osc = oscillatorPool.get(noteName);
-      if (osc && osc.state === "running") {
-        osc.stop();
-      }
-      oscillatorPool.delete(noteName);
-    }
-  }, 100);
+  // Stop the oscillator for this note and clean up
+  const note = oscillatorPool.get(noteName);
+  if (note?.noteGain) {
+    const now = audioContext.currentTime;
+    note.noteGain.gain.cancelScheduledValues(now);
+    note.noteGain.gain.setTargetAtTime(0.0001, now, 0.03);
+  }
+  if (note?.oscillator?.state === "running") {
+    note.oscillator.stop(audioContext.currentTime + 0.12);
+  }
+  oscillatorPool.delete(noteName);
 }
 
 // Export note API for MIDI-friendly integration

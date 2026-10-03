@@ -2,13 +2,22 @@
 // Two octaves: C3 to B4 (24 notes)
 // Polyphonic, keyboard+mouse support, visual feedback, octave labeling
 
-import { initAudio, playNote, stopNote } from "./audio.js";
+import {
+  initAudio,
+  playNote,
+  stopNote,
+  activeNotes,
+  isAudioRunning,
+} from "./audio.js";
 
 // Wait for user gesture before starting AudioContext
+const audioStatusText = document.getElementById("audio-status-text");
 document.body.addEventListener(
   "click",
   () => {
-    initAudio();
+    initAudio().then(() => {
+      audioStatusText.textContent = isAudioRunning() ? "running" : "suspended";
+    });
   },
   { once: true },
 );
@@ -16,9 +25,6 @@ document.body.addEventListener(
 // Select all piano keys
 const whiteKeys = document.querySelectorAll(".key.white");
 const blackKeys = document.querySelectorAll(".key.black");
-
-// Track active notes for polyphony and no-stuck-notes guarantee
-const activeNotes = new Set();
 
 // Keyboard key mapping (natural + sharp notes)
 // Mapping: key -> note name (e.g., 'a' -> C3, 's' -> C#3, etc.)
@@ -97,6 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Note-on handler
 function handleNoteOn(noteName) {
+  initAudio();
   playNote(noteName);
   activeNotes.add(noteName);
   updateKeyVisual(noteName, true);
