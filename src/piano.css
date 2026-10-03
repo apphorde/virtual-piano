@@ -1,11 +1,12 @@
-/* Virtual Piano - Responsive styles */
-/* Light background with good contrast for visibility */
+/* Virtual Piano - responsive two-octave keyboard */
 :root {
-  --key-white: #fff;
-  --key-black: #000;
-  --key-white-active: #e0e0e0;
-  --key-black-active: #333;
-  --bg: #fff;
+  --key-white: #ffffff;
+  --key-white-active: #dbeafe;
+  --key-black: #172033;
+  --key-black-active: #2563eb;
+  --ink: #172033;
+  --muted: #64748b;
+  --bg: #f8fafc;
 }
 
 * {
@@ -15,117 +16,202 @@
 }
 
 body {
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
-    sans-serif;
-  background: var(--bg);
-  color: #212121;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  gap: 1rem;
+  padding: 2rem 1rem;
+  color: var(--ink);
+  background: var(--bg);
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
 }
 
-/* Octave labels */
-.octave-label {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: 0.2rem;
-  color: #888;
-  user-select: none;
+.piano-container {
+  width: min(100%, 980px);
 }
 
-/* Keyboard container */
-.keyboard-keys {
+.piano-heading {
   display: flex;
-  gap: 2px;
-  margin-top: 1rem;
+  justify-content: space-between;
+  padding: 0 0.3rem 0.55rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
-/* White keys */
-.key.white {
-  flex: 1;
-  background: var(--key-white);
-  border: none;
-  border-radius: 0 0 2px 2px;
-  padding: 0.8rem 0.2rem;
-  font-size: 0.75rem;
-  font-weight: bold;
+.keyboard-keys {
+  position: relative;
+  width: 100%;
+  height: clamp(190px, 34vw, 300px);
+  overflow: hidden;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.75rem;
+  background: #cbd5e1;
+  box-shadow: 0 18px 40px rgb(15 23 42 / 12%);
+}
+
+.key {
+  position: absolute;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
   cursor: pointer;
+  user-select: none;
+  touch-action: none;
   transition:
-    background 0.1s,
-    transform 0.05s;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    background 100ms ease,
+    transform 50ms ease;
 }
 
-.key.white:hover:not(.active) {
-  background: var(--key-white-active);
+.key.white {
+  bottom: 0;
+  z-index: 1;
+  width: calc(100% / 14);
+  height: 100%;
+  padding-bottom: 0.8rem;
+  border: 1px solid #cbd5e1;
+  border-bottom: 0;
+  border-radius: 0 0 0.45rem 0.45rem;
+  color: var(--muted);
+  background: var(--key-white);
+  font-size: clamp(0.62rem, 1.5vw, 0.8rem);
+  font-weight: 700;
+  box-shadow: inset 0 -8px 0 rgb(148 163 184 / 8%);
 }
 
-.key.white:active:not(.active) {
-  transform: translateY(2px);
-}
-
+.key.white:hover,
 .key.white.active {
   background: var(--key-white-active);
 }
 
-/* Black keys */
+.key.white:active,
+.key.black:active {
+  transform: translateY(2px);
+}
+
 .key.black {
-  flex: 0.55;
+  top: 0;
+  z-index: 2;
+  width: 6.2%;
+  height: 60%;
+  padding-bottom: 0.5rem;
+  border: 1px solid #0f172a;
+  border-radius: 0 0 0.35rem 0.35rem;
+  color: #cbd5e1;
   background: var(--key-black);
-  color: var(--key-black);
-  border: none;
-  border-radius: 0 0 1px 1px;
-  padding: 0.6rem 0.15rem;
-  font-size: 0.65rem;
-  font-weight: bold;
-  cursor: pointer;
-  margin-left: -1px;
-  margin-right: -1px;
-  transition:
-    background 0.1s,
-    transform 0.05s;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  position: relative;
-  left: 50%;
+  font-size: 0.6rem;
+  font-weight: 700;
+  box-shadow: 0 5px 8px rgb(15 23 42 / 28%);
   transform: translateX(-50%);
 }
 
-.key.black:hover:not(.active) {
-  background: #333;
-}
-
-.key.black:active:not(.active) {
-  transform: translateY(2px) translateX(-50%);
-}
-
+.key.black:hover,
 .key.black.active {
-  background: #333;
+  background: var(--key-black-active);
 }
 
-/* Instruction text */
-.instructions {
-  margin-top: 2rem;
+/* White key positions: 14 naturals across two octaves. */
+.key.white:nth-child(1) {
+  left: calc(100% / 14 * 0);
+}
+.key.white:nth-child(3) {
+  left: calc(100% / 14 * 1);
+}
+.key.white:nth-child(5) {
+  left: calc(100% / 14 * 2);
+}
+.key.white:nth-child(6) {
+  left: calc(100% / 14 * 3);
+}
+.key.white:nth-child(8) {
+  left: calc(100% / 14 * 4);
+}
+.key.white:nth-child(10) {
+  left: calc(100% / 14 * 5);
+}
+.key.white:nth-child(12) {
+  left: calc(100% / 14 * 6);
+}
+.key.white:nth-child(13) {
+  left: calc(100% / 14 * 7);
+}
+.key.white:nth-child(15) {
+  left: calc(100% / 14 * 8);
+}
+.key.white:nth-child(17) {
+  left: calc(100% / 14 * 9);
+}
+.key.white:nth-child(18) {
+  left: calc(100% / 14 * 10);
+}
+.key.white:nth-child(20) {
+  left: calc(100% / 14 * 11);
+}
+.key.white:nth-child(22) {
+  left: calc(100% / 14 * 12);
+}
+.key.white:nth-child(24) {
+  left: calc(100% / 14 * 13);
+}
+
+/* Black key centers sit between the matching white keys. */
+.key.black:nth-child(2) {
+  left: calc(100% / 14 * 1);
+}
+.key.black:nth-child(4) {
+  left: calc(100% / 14 * 2);
+}
+.key.black:nth-child(7) {
+  left: calc(100% / 14 * 4);
+}
+.key.black:nth-child(9) {
+  left: calc(100% / 14 * 5);
+}
+.key.black:nth-child(11) {
+  left: calc(100% / 14 * 6);
+}
+.key.black:nth-child(14) {
+  left: calc(100% / 14 * 8);
+}
+.key.black:nth-child(16) {
+  left: calc(100% / 14 * 9);
+}
+.key.black:nth-child(19) {
+  left: calc(100% / 14 * 11);
+}
+.key.black:nth-child(21) {
+  left: calc(100% / 14 * 12);
+}
+.key.black:nth-child(23) {
+  left: calc(100% / 14 * 13);
+}
+
+#audio-status {
+  color: var(--muted);
   font-size: 0.85rem;
-  color: #aaa;
-  text-align: center;
 }
 
-/* Responsive */
-@media (max-width: 600px) {
+@media (max-width: 520px) {
+  body {
+    padding: 1rem 0.5rem;
+  }
+
   .keyboard-keys {
-    gap: 1px;
+    height: 190px;
+    border-radius: 0.5rem;
   }
+
   .key.white {
-    padding: 0.6rem 0.1rem;
-    font-size: 0.65rem;
+    padding-bottom: 0.55rem;
   }
+
   .key.black {
-    padding: 0.4rem 0.05rem;
-    font-size: 0.55rem;
+    height: 58%;
   }
 }
