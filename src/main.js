@@ -17,6 +17,7 @@ document.body.addEventListener(
   () => {
     initAudio().then(() => {
       audioStatusText.textContent = isAudioRunning() ? "running" : "suspended";
+      window.__pianoAudioState = isAudioRunning() ? "running" : "suspended";
     });
   },
   { once: true },

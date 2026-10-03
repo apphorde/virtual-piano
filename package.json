@@ -6,9 +6,11 @@
   "scripts": {
     "build": "echo 'No build step needed for vanilla HTML/CSS/JS'",
     "lint": "echo 'No framework - skipping lint'",
-    "test": "vitest run && echo 'Tests complete'"
+    "test": "vitest run && echo 'Tests complete'",
+    "test:e2e": "playwright test"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "vitest": "^3.0.7"
   }
 }
