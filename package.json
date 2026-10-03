@@ -1,0 +1,14 @@
+{
+  "name": "virtual-piano",
+  "version": "1.0.0",
+  "description": "A browser-based virtual piano with Web Audio API, two octaves, keyboard and mouse support",
+  "type": "module",
+  "scripts": {
+    "build": "echo 'No build step needed for vanilla HTML/CSS/JS'",
+    "lint": "echo 'No framework - skipping lint'",
+    "test": "vitest run && echo 'Tests complete'"
+  },
+  "devDependencies": {
+    "vitest": "^3.0.7"
+  }
+}

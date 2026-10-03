@@ -1,0 +1,130 @@
+/* Virtual Piano - Responsive styles */
+:root {
+  --key-white: #fff;
+  --key-black: #000;
+  --key-white-active: #ddd;
+  --key-black-active: #333;
+  --bg: #1a1a1a;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  background: var(--bg);
+  color: #fff;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+/* Octave labels */
+.octave-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.2rem;
+  color: #888;
+  user-select: none;
+}
+
+/* Keyboard container */
+.keyboard-keys {
+  display: flex;
+  gap: 2px;
+  margin-top: 1rem;
+}
+
+/* White keys */
+.key.white {
+  flex: 1;
+  background: var(--key-white);
+  border: none;
+  border-radius: 0 0 2px 2px;
+  padding: 0.8rem 0.2rem;
+  font-size: 0.75rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition:
+    background 0.1s,
+    transform 0.05s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.key.white:hover:not(.active) {
+  background: var(--key-white-active);
+}
+
+.key.white:active:not(.active) {
+  transform: translateY(2px);
+}
+
+.key.white.active {
+  background: var(--key-white-active);
+}
+
+/* Black keys */
+.key.black {
+  flex: 0.55;
+  background: var(--key-black);
+  color: var(--key-black);
+  border: none;
+  border-radius: 0 0 1px 1px;
+  padding: 0.6rem 0.15rem;
+  font-size: 0.65rem;
+  font-weight: bold;
+  cursor: pointer;
+  margin-left: -1px;
+  margin-right: -1px;
+  transition:
+    background 0.1s,
+    transform 0.05s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.key.black:hover:not(.active) {
+  background: #333;
+}
+
+.key.black:active:not(.active) {
+  transform: translateY(2px) translateX(-50%);
+}
+
+.key.black.active {
+  background: #333;
+}
+
+/* Instruction text */
+.instructions {
+  margin-top: 2rem;
+  font-size: 0.85rem;
+  color: #aaa;
+  text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .keyboard-keys {
+    gap: 1px;
+  }
+  .key.white {
+    padding: 0.6rem 0.1rem;
+    font-size: 0.65rem;
+  }
+  .key.black {
+    padding: 0.4rem 0.05rem;
+    font-size: 0.55rem;
+  }
+}
